@@ -35,9 +35,6 @@ kubectl apply -f https://github.com/kedacore/keda/releases/download/v2.4.0/keda-
 create the pubsub deployment
 
 ```
-
-```
-```
 gcloud pubsub topics create $PUBSUB_INGEST_TOPIC
 gcloud pubsub topics create $PUBSUB_OUTPUT_TOPIC
 gcloud pubsub subscriptions create $PUBSUB_INGEST_SUBSCRIPTION \
@@ -50,9 +47,6 @@ gcloud pubsub subscriptions create $PUBSUB_OUTPUT_SUBSCRIPTION \
 
 create service account deployment
 
-```
-
-```
 ```
 gcloud iam service-accounts create $WORKER_SERVICE_ACCOUNT \
     --description="gke and keda pubsub reader service account" \
@@ -74,9 +68,6 @@ gcloud iam service-accounts add-iam-policy-binding \
 
 create base k8s deployment
 
-```
-
-```
 ```
 cat <<EOF > k8s/sa.yaml
 apiVersion: v1
