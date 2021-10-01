@@ -1,0 +1,14 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: pubsub-scaledobject
+  namespace: keda-pubsub
+spec:
+  scaleTargetRef:
+    name: keda-pubsub-worker
+  triggers:
+  - type: gcp-pubsub
+    metadata:
+      subscriptionSize: "5"
+      subscriptionName: ingest-subscription # Required
+      credentialsFromEnv: GOOGLE_APPLICATION_CREDENTIALS_JSON # Required

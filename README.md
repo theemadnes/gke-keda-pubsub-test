@@ -116,7 +116,7 @@ done
 #### receive output topic messages
 
 ```
-gcloud alpha pubsub subscriptions pull $PUBSUB_OUTPUT_SUBSCRIPTION --auto-ack --limit 50
+watch -n 2 gcloud alpha pubsub subscriptions pull $PUBSUB_OUTPUT_SUBSCRIPTION --auto-ack --limit 25
 ```
 
 #### create K8s deployment
@@ -154,3 +154,25 @@ EOF
 kubectl apply -f k8s/deployment.yaml
 ```
 
+#### set up KEDA
+
+```
+cat <<EOF > k8s/keda-pubsub-scaler.yaml
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: pubsub-scaledobject
+  namespace: keda-pubsub
+spec:
+  scaleTargetRef:
+    name: keda-pubsub-worker
+  triggers:
+  - type: gcp-pubsub
+    metadata:
+      subscriptionSize: "5"
+      subscriptionName: ${PUBSUB_INGEST_SUBSCRIPTION} # Required
+      credentialsFromEnv: GOOGLE_APPLICATION_CREDENTIALS_JSON # Required
+EOF
+
+kubectl apply -f k8s/keda-pubsub-scaler.yaml
+```
