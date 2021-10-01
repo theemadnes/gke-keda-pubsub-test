@@ -6,7 +6,7 @@ import os
 project_id = os.environ.get('PROJECT')
 subscription_id = os.environ.get('PUBSUB_INGEST_SUBSCRIPTION')
 # Number of seconds the subscriber should listen for messages
-timeout = 60.0
+timeout = None #60.0 # how long to wait for new messages before exiting
 output_topic_id = os.environ.get('PUBSUB_OUTPUT_TOPIC')
 
 subscriber = pubsub_v1.SubscriberClient()
@@ -46,14 +46,14 @@ def callback(message: pubsub_v1.subscriber.message.Message) -> None:
         data = f"{num} is not a prime number"
         data = data.encode("utf-8")
         future = publisher.publish(publish_topic_path, data)
-        print(future.result())
+        #print(future.result())
 
     else:
         print(num, "is a prime number")
         data = f"{num} is a prime number"
         data = data.encode("utf-8")
         future = publisher.publish(publish_topic_path, data)
-        print(future.result())
+        #print(future.result())
 
     print(f"Received {message}.")
 
