@@ -32,7 +32,11 @@ deploy KEDA
 kubectl apply -f https://github.com/kedacore/keda/releases/download/v2.4.0/keda-2.4.0.yaml
 ```
 
-create the pubsub resources
+create the pubsub deployment
+
+```
+
+```
 ```
 gcloud pubsub topics create $PUBSUB_INGEST_TOPIC
 gcloud pubsub topics create $PUBSUB_OUTPUT_TOPIC
@@ -43,6 +47,53 @@ gcloud pubsub subscriptions create $PUBSUB_OUTPUT_SUBSCRIPTION \
     --topic=${PUBSUB_OUTPUT_TOPIC} \
     --ack-deadline=60
 ```
+
+create service account deployment
+
+```
+
+```
+```
+gcloud iam service-accounts create $WORKER_SERVICE_ACCOUNT \
+    --description="gke and keda pubsub reader service account" \
+    --display-name=$WORKER_SERVICE_ACCOUNT
+
+gcloud projects add-iam-policy-binding $PROJECT \
+    --member "serviceAccount:${WORKER_SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com" \
+    --role "roles/pubsub.publisher"
+
+gcloud projects add-iam-policy-binding $PROJECT \
+    --member "serviceAccount:${WORKER_SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com" \
+    --role "roles/pubsub.subscriber"
+
+gcloud iam service-accounts add-iam-policy-binding \
+    --role roles/iam.workloadIdentityUser \
+    --member "serviceAccount:${PROJECT}.svc.id.goog[keda-pubsub/${WORKER_SERVICE_ACCOUNT}]" \
+    ${WORKER_SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com
+```
+
+create base k8s deployment
+
+```
+
+```
+```
+cat <<EOF > k8s/sa.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ${WORKER_SERVICE_ACCOUNT}
+  namespace: keda-pubsub
+EOF
+
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/sa.yaml
+
+kubectl annotate serviceaccount \
+    --namespace keda-pubsub ${WORKER_SERVICE_ACCOUNT} \
+    iam.gke.io/gcp-service-account=${WORKER_SERVICE_ACCOUNT}@${PROJECT}.iam.gserviceaccount.com
+```
+
 
 #### create worker image 
 
@@ -67,3 +118,39 @@ done
 ```
 gcloud alpha pubsub subscriptions pull $PUBSUB_OUTPUT_SUBSCRIPTION --auto-ack --limit 50
 ```
+
+#### create K8s deployment
+
+```
+cat <<EOF > k8s/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keda-pubsub-worker
+  namespace: keda-pubsub
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keda-pubsub-worker
+  template:
+    metadata:
+      labels:
+        app: keda-pubsub-worker
+    spec:
+      containers:
+      - name: worker
+        image: gcr.io/${PROJECT}/keda-pubsub-test-worker
+        env:
+        - name: PROJECT
+          value: ${PROJECT}
+        - name: PUBSUB_INGEST_SUBSCRIPTION
+          value: ${PUBSUB_INGEST_SUBSCRIPTION}
+        - name: PUBSUB_OUTPUT_TOPIC
+          value: ${PUBSUB_OUTPUT_TOPIC}
+      serviceAccountName: ${WORKER_SERVICE_ACCOUNT}
+EOF
+
+kubectl apply -f k8s/deployment.yaml
+```
+
