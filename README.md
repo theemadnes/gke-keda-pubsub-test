@@ -186,8 +186,7 @@ kubectl apply -f k8s/keda-pubsub-scaler.yaml
 
 #### send test messages to the ingest topic 
 
-try this from a few different terminal sessions 
-
+try this from a few different terminal sessions:
 ```
 for i in {1..100}
 do
@@ -203,7 +202,6 @@ watch -n 2 gcloud alpha pubsub subscriptions pull $PUBSUB_OUTPUT_SUBSCRIPTION --
 ```
 
 output:
-
 ```
 $ gcloud alpha pubsub subscriptions pull $PUBSUB_OUTPUT_SUBSCRIPTION --auto-ack --limit 25
 ┌─────────────────────────────────────────────────────────────────────────────────────┬──────────────────┬──────────────┬────────────┬──────────────────┐
