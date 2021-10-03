@@ -2,6 +2,7 @@ from concurrent.futures import TimeoutError
 from google.cloud import pubsub_v1
 import os
 import socket
+import math
 
 # TODO(developer)
 project_id = os.environ.get('PROJECT')
@@ -20,6 +21,21 @@ publisher = pubsub_v1.PublisherClient()
 # in the form `projects/{project_id}/topics/{topic_id}`
 publish_topic_path = publisher.topic_path(project_id, output_topic_id)
 
+# function to check if a number is prime
+def is_prime(n):
+    if n == 2:
+        return True
+    if n % 2 == 0 or n <= 1:
+        return False
+
+    sqr = int(math.sqrt(n)) + 1
+
+    for divisor in range(3, sqr, 2):
+        if n % divisor == 0:
+            return False
+    return True
+
+
 def callback(message: pubsub_v1.subscriber.message.Message) -> None:
 
     # determine if input value is prime number
@@ -28,30 +44,17 @@ def callback(message: pubsub_v1.subscriber.message.Message) -> None:
     print(message)
     num = int(message.data)
 
-    # define a flag variable
-    flag = False
-
-    # prime numbers are greater than 1
-    if num > 1:
-        # check for factors
-        for i in range(2, num):
-            if (num % i) == 0:
-                # if factor is found, set flag to True
-                flag = True
-                # break out of loop
-                break
-
     # check if flag is True
-    if flag:
-        print(num, "is not a prime number")
-        data = f"{num} is not a prime number - processed by {socket.gethostname()}"
+    if is_prime(num):
+        print(num, "is a prime number")
+        data = f"{num} is a prime number - processed by {socket.gethostname()}"
         data = data.encode("utf-8")
         future = publisher.publish(publish_topic_path, data)
         #print(future.result())
 
     else:
-        print(num, "is a prime number")
-        data = f"{num} is a prime number - processed by {socket.gethostname()}"
+        print(num, "is a not prime number")
+        data = f"{num} is a not prime number - processed by {socket.gethostname()}"
         data = data.encode("utf-8")
         future = publisher.publish(publish_topic_path, data)
         #print(future.result())
