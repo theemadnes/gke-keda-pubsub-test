@@ -1,0 +1,25 @@
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: keda-trigger-auth-gcp-credentials
+  namespace: keda-pubsub
+spec:
+  secretTargetRef:
+  - parameter: GoogleApplicationCredentials 
+    name: pubsub-key        # Required. Refers to the name of the secret
+    key: GOOGLE_APPLICATION_CREDENTIALS       # Required.
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: pubsub-scaledobject
+  namespace: keda-pubsub
+spec:
+  scaleTargetRef:
+    name: keda-pubsub-worker
+  triggers:
+  - type: gcp-pubsub
+    authenticationRef:
+      name: keda-trigger-auth-gcp-credentials
+    metadata:
+      subscriptionName: ingest-subscription # Required  

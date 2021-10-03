@@ -6,9 +6,12 @@ metadata:
 spec:
   scaleTargetRef:
     name: keda-pubsub-worker
+  pollingInterval: 15  # Optional. Default: 30 seconds
+  cooldownPeriod:  30 # Optional. Default: 300 seconds
   triggers:
   - type: gcp-pubsub
     metadata:
       subscriptionSize: "5"
       subscriptionName: ingest-subscription # Required
       credentialsFromEnv: GOOGLE_APPLICATION_CREDENTIALS_JSON # Required
+      #credentialsFromEnv: GOOGLE_APPLICATION_CREDENTIALS # Required

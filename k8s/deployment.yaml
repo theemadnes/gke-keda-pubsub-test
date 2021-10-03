@@ -13,14 +13,31 @@ spec:
       labels:
         app: keda-pubsub-worker
     spec:
+      volumes:
+      - name: google-cloud-key
+        secret:
+          secretName: pubsub-secret
       containers:
       - name: worker
         image: gcr.io/gxlb-asm-01/keda-pubsub-test-worker
+        volumeMounts:
+        - name: google-cloud-key
+          mountPath: /var/secrets/google
         env:
         - name: PROJECT
-          value: gxlb-asm-01
+          valueFrom:
+            secretKeyRef:
+              name: pubsub-secret
+              key: PROJECT
         - name: PUBSUB_INGEST_SUBSCRIPTION
           value: ingest-subscription
         - name: PUBSUB_OUTPUT_TOPIC
           value: output-topic
-      serviceAccountName: worker-sa
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /var/secrets/google/GOOGLE_APPLICATION_CREDENTIALS
+        - name: GOOGLE_APPLICATION_CREDENTIALS_JSON
+          valueFrom:
+            secretKeyRef:
+              name: pubsub-secret
+              key: GOOGLE_APPLICATION_CREDENTIALS
+      #serviceAccountName: worker-sa

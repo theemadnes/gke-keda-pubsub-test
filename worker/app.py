@@ -1,6 +1,7 @@
 from concurrent.futures import TimeoutError
 from google.cloud import pubsub_v1
 import os
+import socket
 
 # TODO(developer)
 project_id = os.environ.get('PROJECT')
@@ -43,14 +44,14 @@ def callback(message: pubsub_v1.subscriber.message.Message) -> None:
     # check if flag is True
     if flag:
         print(num, "is not a prime number")
-        data = f"{num} is not a prime number"
+        data = f"{num} is not a prime number - processed by {socket.gethostname()}"
         data = data.encode("utf-8")
         future = publisher.publish(publish_topic_path, data)
         #print(future.result())
 
     else:
         print(num, "is a prime number")
-        data = f"{num} is a prime number"
+        data = f"{num} is a prime number - processed by {socket.gethostname()}"
         data = data.encode("utf-8")
         future = publisher.publish(publish_topic_path, data)
         #print(future.result())
