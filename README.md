@@ -186,11 +186,13 @@ kubectl apply -f k8s/keda-pubsub-scaler.yaml
 
 #### send test messages to the ingest topic 
 
+try this from a few different terminal sessions 
+
 ```
-for i in {1..20}
+for i in {1..100}
 do
    gcloud pubsub topics publish $PUBSUB_INGEST_TOPIC \
-   --message=$(od -N 6 -t uL -An /dev/urandom | tr -d " ")
+   --message=$(od -N 4 -t uL -An /dev/urandom | tr -d " ")
 done
 ```
 
@@ -198,4 +200,17 @@ done
 
 ```
 watch -n 2 gcloud alpha pubsub subscriptions pull $PUBSUB_OUTPUT_SUBSCRIPTION --auto-ack --limit 25
+```
+
+output:
+
+```
+$ gcloud alpha pubsub subscriptions pull $PUBSUB_OUTPUT_SUBSCRIPTION --auto-ack --limit 25
+┌─────────────────────────────────────────────────────────────────────────────────────┬──────────────────┬──────────────┬────────────┬──────────────────┐
+│                                         DATA                                        │    MESSAGE_ID    │ ORDERING_KEY │ ATTRIBUTES │ DELIVERY_ATTEMPT │
+├─────────────────────────────────────────────────────────────────────────────────────┼──────────────────┼──────────────┼────────────┼──────────────────┤
+│ 3533427344 is not a prime number - processed by keda-pubsub-worker-565ff4fffb-svhrg │ 3166664891990025 │              │            │                  │
+│ 1770762633 is not a prime number - processed by keda-pubsub-worker-565ff4fffb-689bh │ 3166637726529058 │              │            │                  │
+│ 3641977476 is not a prime number - processed by keda-pubsub-worker-565ff4fffb-d6sdp │ 3166636488685443 │              │            │                  │
+└─────────────────────────────────────────────────────────────────────────────────────┴──────────────────┴──────────────┴────────────┴──────────────────┘
 ```
